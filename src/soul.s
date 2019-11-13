@@ -35,6 +35,8 @@ store_word:
 int_handler:
     #tratamento de interrupcoes
     #salva o contexto
+    csrr t2, mcause
+    srli t2, t2, 30
     csrrw t0, mscratch, t0 #troca o valor de t0 com mscratch
     sw a0, 0(t0)
     sw a1, 4(t0)
@@ -64,26 +66,29 @@ int_handler:
     sw s9, 92(t0)
     sw s10, 96(t0)
     sw s11, 100(t0)
+    li t1, 1
+    csrr t2, mcause
+    beq t1, t2, sys_gpt
     # <= Implemente o tratamento da sua syscall aqui 
     li t1, 16
-    beq t1, a7, read_ultrasonic_sensor
+    beq t1, a7, sys_read_ultrasonic_sensor
     li t1, 17
-    beq t1, a7, set_servo_angles
+    beq t1, a7, sys_set_servo_angles
     li t1, 18
-    beq t1, a7, set_engine_torque
+    beq t1, a7, sys_set_engine_torque
     li t1, 19
-    beq t1, a7, read_gps
+    beq t1, a7, sys_read_gps
     li t1, 20
-    beq t1, a7, read_gyroscope
+    beq t1, a7, sys_read_gyroscope
     li t1, 21
-    beq t1, a7, get_time
+    beq t1, a7, sys_get_time
     li t1, 22
-    beq t1, a7, set_time
+    beq t1, a7, sys_set_time
     li t1, 64
-    beq t1, a7, write
-    write:
+    beq t1, a7, sys_write
+    sys_write:
     j fim
-    read_ultrasonic_sensor:
+    sys_read_ultrasonic_sensor:
     #colocar 0 em FLAG_ULTRASSOM
     #while(FLAG_ULTRASSOM == 0)
         #Le o valor de FLAG_ULTRASSOM
@@ -93,10 +98,10 @@ int_handler:
         while_ultrassom:
             lw t2, 0(t1)
             beqz t2, while_ultrassom
-        la t0, ULTRASSOM
-        sw a0, 0(t0)
+        la a1, ULTRASSOM
+        jal store_word
         j fim
-    set_servo_angles:
+    sys_set_servo_angles:
     #verifica o valor de a0
         li t1, 1
         beq a0, t1, motor_base
@@ -113,29 +118,32 @@ int_handler:
             blt a1, t1, angulo_servo_invalido
             li t1, 116
             blt a1, t1, angulo_servo_invalido
-            la t1, MOTOR_BASE
-            sw a1, 0(t1)
+            mv a0, a1
+            la a1, MOTOR_BASE
+            jal store_word
             j fim
         motor_mid:
             li t1, 52
             blt a1, t1, angulo_servo_invalido
             li t1, 90
             blt a1, t1, angulo_servo_invalido
-            la t1, MOTOR_MID
-            sw a1, 0(t1)
+            mv a0, a1
+            la a1, MOTOR_MID
+            jal store_word
             j fim
         motor_top:
             li t1, 0
             blt a1, t1, angulo_servo_invalido
             li t1, 156
             blt a1, t1, angulo_servo_invalido
-            la t1, MOTOR_TOP
-            sw a1, 0(t1)
+            mv a0, a1
+            la a1, MOTOR_TOP
+            jal store_word
             j fim
         angulo_servo_invalido:
             li a0, -1
             j fim
-    set_engine_torque:
+    sys_set_engine_torque:
         beqz a0, torque_motor_1
         li t1, 1
         beq a0, t1, torque_motor_2
@@ -143,22 +151,34 @@ int_handler:
         li a0, -1
         j fim
         torque_motor_1:
-            la t1, TORQUE_MOTOR_1
-            sw a1, 0(t1)
+            mv a0, a1
+            la a1, TORQUE_MOTOR_1
+            jal store_word
             mv a0, zero
             j fim
         torque_motor_2:
-            la t1, TORQUE_MOTOR_2
-            sw a1, 0(t1)
+            mv a0, a1
+            la a1, TORQUE_MOTOR_2
+            jal store_word
             mv a0, zero
             j fim
-    read_gps:
+    sys_read_gps:
     j fim
-    read_gyroscope:
+    sys_read_gyroscope:
     j fim
-    get_time:
+    sys_get_time:
     j fim
-    set_time:
+    sys_set_time:
+    
+    sys_gpt:
+        la a1, sys_time
+        lw a0, 0(a1)
+        addi a0, a0, 100
+        jal store_word
+        la a0, INTERRUPCAO_GPT
+        li a1, 100 #interrupcoes a cada 100 ms
+        jal store_word
+
     fim:
     #restaurando o contexto
     lw s11, 100(t0)
@@ -196,9 +216,9 @@ int_handler:
 
 _start:
     #configura o gpt
-    la t0, INTERRUPCAO_GPT
-    li t1, 100 #interrupcoes a cada 100 ms
-    sw t1, 0(t0)
+    la a0, INTERRUPCAO_GPT
+    li a1, 100 #interrupcoes a cada 100 ms
+    jal store_word
     #seta torque dos motores pra zero
     li a0, 0
     la a1, TORQUE_MOTOR_1
@@ -245,15 +265,10 @@ _start:
     and t1, t1, t2
     csrw mstatus, t1
     #grava o endereco da funcao main
-    la t0, user
+    la t0, main
     csrw mepc, t0
     #vai pra funcao main
     mret
-    .align 4
-    user:
-        li a7, 16
-        ecall
-        add a1, a0, a0
-        mv s0, a1
 
 reg_buffer: .skip 124
+sys_time: .word 0
