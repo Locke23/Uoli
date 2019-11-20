@@ -32,12 +32,12 @@ set_torque:
     li a0, 1
     li a1, s1
     jal set_engine_torque
-    
+    j fim1
     erroTorque:
         li a0, -1
-        j fim
+        j fim1
     #retorna o contexto
-    fim:
+    fim1:
         ret
 #############################################################################################
 
@@ -68,4 +68,26 @@ set_engine_torque:
 #############################################################################################
 
 set_head_servo:
+    jal set_servo_angles
+    
+    beqz a0, fimAngle
+    
+    li t0, -1
+    beq a0, t0, trata
+
+    li a0, -1
+    j fimAngle
+
+    trata:
+        li a0, -2
+
+    fimAngle:
+    ret
+
+#############################################################################################
+
+set_servo_angles:
+    
+    li a7, 17
+    ecall
     ret
