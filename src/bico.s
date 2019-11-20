@@ -34,7 +34,7 @@ set_torque:
     jal set_engine_torque
     #seta o torque do motor 1
     li a0, 1
-    li a1, s1
+    mv a1, s1
     jal set_engine_torque
    
     j fimTorque

@@ -235,34 +235,34 @@ _start:
     la a1, TORQUE_MOTOR_1
     sh a0, 0(a1)
     wait_2:
-        lw a2, 0(a1)
+        lh a2, 0(a1)
         bne a2, a0, wait_2
     li a0, 0
     la a1, TORQUE_MOTOR_2
     sh a0, 0(a1)
     wait_3:
-        lw a2, 0(a1)
+        lh a2, 0(a1)
         bne a2, a0, wait_3
     
     li a0, 31
     la a1, MOTOR_BASE
     sb a0, 0(a1)
     wait_4:
-        lw a2, 0(a1)
+        lb a2, 0(a1)
         bne a2, a0, wait_4
     
     li a0, 80
     la a1, MOTOR_MID
     sb a0, 0(a1)
     wait_5:
-        lw a2, 0(a1)
+        lb a2, 0(a1)
         bne a2, a0, wait_5
 
     li a0, 78
     la a1, MOTOR_TOP
     sb a0, 0(a1)
     wait_6:
-        lw a2, 0(a1)
+        lb a2, 0(a1)
         bne a2, a0, wait_6
     # Configura o tratador de interrupções
     la t0, int_handler # Grava o endereço do rótulo int_handler
