@@ -9,11 +9,15 @@
 
 #############################################################################################
 set_torque:
+    addi sp, sp, -8 # Aloca espaço da pilha
+    sw s0, 4(sp) # Salva s0 na pilha
+    sw s1, 0(sp) # Salva s1 na pilha
+    
     li t1, 100
-    bgt a0, t1, erroRange # if a1 > t1 then target
+    bgt a0, t1, erroRange1 # if a1 > t1 then target
 
     li t1, -100
-    blt a0, t1, erroTorque # if a1 < t1 then target
+    blt a0, t1, erroRange1 # if a1 < t1 then target
 
      li t1, 100
     bgt a1, t1, erroTorque # if a1 > t1 then target
@@ -32,12 +36,21 @@ set_torque:
     li a0, 1
     li a1, s1
     jal set_engine_torque
-    j fim1
+   
+    j fimTorque
+
+    erroRange1:
+        li a0, -2
+        j fimTorque
+
     erroTorque:
         li a0, -1
-        j fim1
+        j fimTorque
     #retorna o contexto
-    fim1:
+    fimTorque:
+        lw s1, 0(sp) # Recupera s2 da pilha
+        lw s0, 4(sp) # Recupera s1 da pilha
+        addi sp, sp, 8 # Desaloca espaço da pilha
         ret
 #############################################################################################
 
@@ -89,5 +102,34 @@ set_head_servo:
 set_servo_angles:
     
     li a7, 17
+    ecall
+    ret
+#############################################################################################
+
+get_us_distance:
+    li a7, 16
+    ecall
+    ret
+#############################################################################################
+
+get_current_GPS_position:
+    li a7, 19
+    ecall
+    ret
+#############################################################################################
+
+get_gyro_angles:
+    li a7, 20
+    ecall 
+    ret
+#############################################################################################
+
+get_time:
+    li a7, 21
+    ecall
+    ret
+#############################################################################################
+set_time:
+    li a7, 22
     ecall
     ret
