@@ -195,9 +195,13 @@ int_handler:
         
         j fim
     sys_get_time:
-    j fim
+        la a0, sys_time
+        lw a0, 0(a0)
+        j fim
     sys_set_time:
-    
+        la a1, sys_time
+        sw a0, 0(a1)
+        j fim
     sys_gpt:
         la a1, FLAG_INTERRUPCAO_GPT
         lw a0, 0(a1)
