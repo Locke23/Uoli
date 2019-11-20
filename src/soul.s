@@ -22,16 +22,6 @@
 .equ FLAG_ESCRITA_UART, 0xFFFF0108 # seta pra 1 pra comecar o processo de escrita
 .equ FLAG_LEITURA_UART, 0xFFFF010A # seta ra 1 pra comecar o processo de leitura
 
-#store_word(valor,endereco) - essa funcao ta aqui pq precisamos esperar o valor ser salvo pra passar pra proxima instrucao
-#se nao fizermos isso, o robo nao vai seguir os comandos direito
-store_word:
-    sw a0, 0(a1)
-    wait:
-        lw a2, 0(a1)
-        bne a2, a0, wait # if a2 != a0 then wait
-    ret
-        
-
 int_handler:
     #tratamento de interrupcoes
     #salva o contexto
@@ -92,11 +82,14 @@ int_handler:
     #coloca ULTRASSOM em a0
         la t1, FLAG_ULTRASSOM
         sw zero, 0(t1)
+        wait_ultrassom:
+            lw t2, 0(t1)
+            bne t2, zero, wait_ultrassom
         while_ultrassom:
             lw t2, 0(t1)
             beqz t2, while_ultrassom
         la a1, ULTRASSOM
-        jal store_word
+        lw a0, 0(a1)
         j fim
     sys_set_servo_angles:
     #verifica o valor de a0
@@ -117,7 +110,10 @@ int_handler:
             blt a1, t1, angulo_servo_invalido
             mv a0, a1
             la a1, MOTOR_BASE
-            jal store_word
+            sb a0, 0(a1)
+            wait_motor_base:
+                lb a2, 0(a1)
+                bne a2, a0, wait_motor_base
             j fim
         motor_mid:
             li t1, 52
@@ -126,7 +122,10 @@ int_handler:
             blt a1, t1, angulo_servo_invalido
             mv a0, a1
             la a1, MOTOR_MID
-            jal store_word
+            sb a0, 0(a1)
+            wait_motor_mid:
+                lb a2, 0(a1)
+                bne a2, a0, wait_motor_mid
             j fim
         motor_top:
             li t1, 0
@@ -135,7 +134,10 @@ int_handler:
             blt a1, t1, angulo_servo_invalido
             mv a0, a1
             la a1, MOTOR_TOP
-            jal store_word
+            sb a0, 0(a1)
+            wait_motor_top:
+                lb a2, 0(a1)
+                bne a2, a0, wait_motor_top
             j fim
         angulo_servo_invalido:
             li a0, -1
@@ -183,15 +185,16 @@ int_handler:
         la a1, sys_time
         lw a0, 0(a1)
         addi a0, a0, 100
-        jal store_word
-        la a0, INTERRUPCAO_GPT
-        li a1, 100 #interrupcoes a cada 100 ms
-        jal store_word
-
+        sw a0, 0(a1)
+        wait_gpt:
+            lw a2, 0(a1)
+            bne a2, a0, wait_gpt
+        j fim_gpt
     fim:
     csrr t1, mepc  # carrega endereco de retorno (endereco da instrucao que invocou a syscall)
     addi t1, t1, 4 # soma 4 no endereco de retorno (para retornar para a ecall) 
     csrw mepc, t1  # armazena endereco de retorno de volta no mepc
+    fim_gpt:
     #restaurando o contexto
     lw s11, 100(t0)
     lw s10, 96(t0)
@@ -224,7 +227,7 @@ int_handler:
     mret           # Recuperar o restante do contexto (pc <- mepc)
 
 _start:
-    li a0, 100 #interrupcoes a cada 100 ms
+    li a0, 0 #interrupcoes a cada 100 ms
     la a1, INTERRUPCAO_GPT
     sw a0, 0(a1)
     wait_1:

@@ -109,6 +109,10 @@ set_servo_angles:
 get_us_distance:
     li a7, 16
     ecall
+    li a1, -1
+    bne a0, a1, fim_distance
+    li a0, 0xFFFF
+    fim_distance:
     ret
 #############################################################################################
 
