@@ -200,7 +200,27 @@ int_handler:
 
     j fim
     sys_read_gyroscope:
-    j fim
+        la t1, FLAG_POSICAO_UOLI
+        sw zero, 0(t1)
+        li t2, 1
+        while_gyroscope:
+            lw t3, 0(t1)
+            bne t3, t2, while_gyroscope
+        
+        la t1, ANGULOS_ROTACAO_UOLI
+        lw t2, 0(t1)
+        
+        srli t3, t2, 20
+        sw t3, 0(a0)
+        
+        srli t3, t2, 10
+        andi t3, t3, 1023
+        sw t3, 4(a0)
+
+        andi t2, t2, 1023
+        sw t2, 8(a0)
+        
+        j fim
     sys_get_time:
     j fim
     sys_set_time:
