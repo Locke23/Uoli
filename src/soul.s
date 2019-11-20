@@ -93,11 +93,11 @@ int_handler:
         j fim
     sys_set_servo_angles:
     #verifica o valor de a0
-        li t1, 1
+        li t1, 0
         beq a0, t1, motor_base
-        li t1, 2
+        li t1, 1
         beq a0, t1, motor_mid
-        li t1, 3
+        li t1, 2
         beq a0, t1, motor_top
         #id do motor servo invalido
         li a0, -2
@@ -107,7 +107,7 @@ int_handler:
             li t1, 16
             blt a1, t1, angulo_servo_invalido
             li t1, 116
-            blt a1, t1, angulo_servo_invalido
+            bgt a1, t1, angulo_servo_invalido
             mv a0, a1
             la a1, MOTOR_BASE
             sb a0, 0(a1)
@@ -119,7 +119,7 @@ int_handler:
             li t1, 52
             blt a1, t1, angulo_servo_invalido
             li t1, 90
-            blt a1, t1, angulo_servo_invalido
+            bgt a1, t1, angulo_servo_invalido
             mv a0, a1
             la a1, MOTOR_MID
             sb a0, 0(a1)
@@ -131,7 +131,7 @@ int_handler:
             li t1, 0
             blt a1, t1, angulo_servo_invalido
             li t1, 156
-            blt a1, t1, angulo_servo_invalido
+            bgt a1, t1, angulo_servo_invalido
             mv a0, a1
             la a1, MOTOR_TOP
             sb a0, 0(a1)
