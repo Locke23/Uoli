@@ -153,7 +153,7 @@ int_handler:
             sh a0, 0(a1)
             
             wait_sys_torque_motor_1:
-                lw a2, 0(a1)
+                lh a2, 0(a1)
                 bne a2, a0, wait_sys_torque_motor_1 # if a2 != a0 then wait
             
             mv a0, zero
@@ -164,7 +164,7 @@ int_handler:
             sh a0, 0(a1)
             
             wait_sys_torque_motor_2:
-                lw a2, 0(a1)
+                lh a2, 0(a1)
                 bne a2, a0, wait_sys_torque_motor_2 # if a2 != a0 then wait
             mv a0, zero
             j fim

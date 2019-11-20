@@ -2,6 +2,5 @@
 
 int main(int args, char **argv)
 {
-    set_engine_torque(1,30);
-    return -1;
+    set_torque(30,30);
 }
