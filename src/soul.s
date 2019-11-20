@@ -35,8 +35,6 @@ store_word:
 int_handler:
     #tratamento de interrupcoes
     #salva o contexto
-    csrr t2, mcause
-    srli t2, t2, 30
     csrrw t0, mscratch, t0 #troca o valor de t0 com mscratch
     sw a0, 0(t0)
     sw a1, 4(t0)
@@ -66,9 +64,8 @@ int_handler:
     sw s9, 92(t0)
     sw s10, 96(t0)
     sw s11, 100(t0)
-    li t1, 1
     csrr t2, mcause
-    beq t1, t2, sys_gpt
+    blt t2, zero, sys_gpt
     # <= Implemente o tratamento da sua syscall aqui 
     li t1, 16
     beq t1, a7, sys_read_ultrasonic_sensor
@@ -153,13 +150,22 @@ int_handler:
         torque_motor_1:
             mv a0, a1
             la a1, TORQUE_MOTOR_1
-            jal store_word
+            sh a0, 0(a1)
+            
+            wait_sys_torque_motor_1:
+                lw a2, 0(a1)
+                bne a2, a0, wait_sys_torque_motor_1 # if a2 != a0 then wait
+            
             mv a0, zero
             j fim
         torque_motor_2:
             mv a0, a1
             la a1, TORQUE_MOTOR_2
-            jal store_word
+            sh a0, 0(a1)
+            
+            wait_sys_torque_motor_2:
+                lw a2, 0(a1)
+                bne a2, a0, wait_sys_torque_motor_2 # if a2 != a0 then wait
             mv a0, zero
             j fim
     sys_read_gps:
@@ -171,6 +177,9 @@ int_handler:
     sys_set_time:
     
     sys_gpt:
+        la a1, FLAG_INTERRUPCAO_GPT
+        lw a0, 0(a1)
+        beqz a0, fim
         la a1, sys_time
         lw a0, 0(a1)
         addi a0, a0, 100
@@ -180,6 +189,9 @@ int_handler:
         jal store_word
 
     fim:
+    csrr t1, mepc  # carrega endereco de retorno (endereco da instrucao que invocou a syscall)
+    addi t1, t1, 4 # soma 4 no endereco de retorno (para retornar para a ecall) 
+    csrw mepc, t1  # armazena endereco de retorno de volta no mepc
     #restaurando o contexto
     lw s11, 100(t0)
     lw s10, 96(t0)
@@ -209,66 +221,73 @@ int_handler:
     lw a2, 8(t0)
     lw a1, 4(t0)
     csrrw t0, mscratch, t0 #troca o valor de t0 com mscratch
-    csrr t0, mepc  # carrega endereco de retorno (endereco da instrucao que invocou a syscall)
-    addi t0, t0, 4 # soma 4 no endereco de retorno (para retornar para a ecall) 
-    csrw mepc, t0  # armazena endereco de retorno de volta no mepc
     mret           # Recuperar o restante do contexto (pc <- mepc)
 
 _start:
-    #configura o gpt
-    la a0, INTERRUPCAO_GPT
-    li a1, 100 #interrupcoes a cada 100 ms
-    jal store_word
+    li a0, 100 #interrupcoes a cada 100 ms
+    la a1, INTERRUPCAO_GPT
+    sw a0, 0(a1)
+    wait_1:
+        lw a2, 0(a1)
+        bne a2, a0, wait_1
     #seta torque dos motores pra zero
     li a0, 0
     la a1, TORQUE_MOTOR_1
-    jal store_word
+    sh a0, 0(a1)
+    wait_2:
+        lw a2, 0(a1)
+        bne a2, a0, wait_2
     li a0, 0
     la a1, TORQUE_MOTOR_2
-    jal store_word
-        
-    #configura articulacoes da cabeca do robo 
-    #nessa parte, MOTOR_* recebem 1 byte. Eu to fazendo um sw, esperando que ele trunque automaticamente
-    #se der erro, pode ser isso
+    sh a0, 0(a1)
+    wait_3:
+        lw a2, 0(a1)
+        bne a2, a0, wait_3
+    
     li a0, 31
     la a1, MOTOR_BASE
-    jal store_word
+    sb a0, 0(a1)
+    wait_4:
+        lw a2, 0(a1)
+        bne a2, a0, wait_4
+    
     li a0, 80
     la a1, MOTOR_MID
-    jal store_word
+    sb a0, 0(a1)
+    wait_5:
+        lw a2, 0(a1)
+        bne a2, a0, wait_5
+
     li a0, 78
     la a1, MOTOR_TOP
-    jal store_word
-
-    la t0, int_handler #carrega o endereco da rotina que trata interrupcoes
-    csrw mtvec, t0 #salva endereco
-
-    #habilita interrupcoes globais
-    csrr t1, mstatus
-    ori t1, t1, 0x80
+    sb a0, 0(a1)
+    wait_6:
+        lw a2, 0(a1)
+        bne a2, a0, wait_6
+    # Configura o tratador de interrupções
+    la t0, int_handler # Grava o endereço do rótulo int_handler
+    csrw mtvec, t0 # no registrador mtvec
+    # Habilita Interrupções Global
+    csrr t1, mstatus # Seta o bit 7 (MPIE)
+    ori t1, t1, 0x80 # do registrador mstatus
     csrw mstatus, t1
-    
     # Habilita Interrupções Externas
     csrr t1, mie # Seta o bit 11 (MEIE)
     li t2, 0x800 # do registrador mie
     or t1, t1, t2
     csrw mie, t1
-    
-    #ajusta mscratch - registrador usado na hora de salvar o contexto
-    la t1, reg_buffer
-    csrw mscratch, t1
+    # Ajusta o mscratch
+    la t1, reg_buffer # Coloca o endereço do buffer para salvar
+    csrw mscratch, t1 # registradores em mscratch
     li sp, 134217724
-
-    #muda para o modo usuario
-    csrr t1, mstatus
-    li t2, ~0x1800
-    and t1, t1, t2
+    # Muda para o Modo de usuário
+    csrr t1, mstatus # Seta os bits 11 e 12 (MPP)
+    li t2, ~0x1800 # do registrador mstatus
+    and t1, t1, t2 # com o valor 00
     csrw mstatus, t1
-    #grava o endereco da funcao main
-    la t0, main
-    csrw mepc, t0
-    #vai pra funcao main
-    mret
+    la t0, main # Grava o endereço do rótulo user
+    csrw mepc, t0 # no registrador mepc
+    mret # PC <= MEPC; MIE <= MPIE; Muda modo para MPP
 
 reg_buffer: .skip 124
 sys_time: .word 0
