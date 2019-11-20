@@ -171,6 +171,33 @@ int_handler:
             mv a0, zero
             j fim
     sys_read_gps:
+        la t1, FLAG_POSICAO_UOLI
+        sw zero, 0(t1)
+        while_posicao:
+            lw t2, 0(t1)
+            beqz t2, while_posicao
+            
+        la a1, POSICAO_UOLI_X
+        lw a2, 0(a1)
+        sw a2, 0(a0)
+        wait_posicao_x:
+            lw a3, 0(a0)
+            bne a2, a3, wait_posicao_x
+        
+        la a1, POSICAO_UOLI_Y
+        lw a2, 0(a1)
+        sw a2, 4(a0)
+        wait_posicao_y:
+            lw a3, 4(a0)
+            bne a2, a3, wait_posicao_y
+
+        la a1, POSICAO_UOLI_Z
+        lw a2, 0(a1)
+        sw a2, 8(a0)
+        wait_posicao_z:
+            lw a3, 8(a0)
+            bne a2, a3, wait_posicao_z
+
     j fim
     sys_read_gyroscope:
     j fim
