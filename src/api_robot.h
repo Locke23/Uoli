@@ -143,6 +143,6 @@ void set_time(unsigned int t);
  * Returns:
  *   void
  */
-void puts_404(const char *);
+void puts(const char *);
 
 #endif // API_ROBOT_H
