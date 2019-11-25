@@ -74,6 +74,24 @@ int_handler:
     li t1, 64
     beq t1, a7, sys_write
     sys_write:
+        li t3, 0 #i=0
+        la t1, ESCRITA_UART
+        while_not_EOT:
+        add t2, a1, t3 #string[i] - address
+        lbu t2, 0(t2) #valor string[i]
+        sb t2, 0(t1) #escreve byte em escrita_uart
+        wait_sys_write:
+            lbu t5, 0(t1)
+            bne t5, t2, wait_sys_write
+        li t4, 1
+        la t5, FLAG_ESCRITA_UART
+        sb t4, 0(t5)
+        flag_sys_write:
+            lb t4, 0(t5)
+            bnez t4, flag_sys_write
+        addi t3, t3, 1 #i++
+        blt t3, a2, while_not_EOT
+
     j fim
     sys_read_ultrasonic_sensor:
     #colocar 0 em FLAG_ULTRASSOM

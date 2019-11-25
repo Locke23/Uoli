@@ -6,7 +6,7 @@
 .globl get_gyro_angles
 .globl get_time
 .globl set_time
-
+.globl puts
 #############################################################################################
 set_torque:
     addi sp, sp, -8 # Aloca espaço da pilha
@@ -137,3 +137,18 @@ set_time:
     li a7, 22
     ecall
     ret
+#############################################################################################
+puts:
+    li a2, 0
+    mv t1, a0
+    while_puts:
+        lbu t0, 0(t1)
+        addi a2, a2, 1
+        add t1, a0, a2
+        bnez t0, while_puts
+    li a7, 64
+    mv a1, a0
+    li a0, 0
+    ret
+
+
