@@ -22,16 +22,34 @@ char* itoa(int value, char* result, int base) {
     }
     return result;
 }
-void turn_left(int wait){
- 
+
+void girar_90graus( int i  ) {
+    //0 -> direita 
+    //1-> esquerda
+    Vector3 *angles;
+    Vector3 *new;
+    get_gyro_angles(angles);
+    get_gyro_angles(new);
+
+    if( i == 0){
+        set_torque(10,-10);
+        while(new->y != angles->y + 90){
+            get_gyro_angles(new);
+        }
+        set_torque(0,0);
+    }
+    else{
+        set_torque(-10,10);
+        while(new->y != angles->y - 90){
+            get_gyro_angles(new);
+        }
+        set_torque(0,0);
+    }
 }
+
+
 int main(int args, char **argv) {
-    char* oi = "ALOALO";
-    puts(oi);
-    int i = get_time();
-    char* a;
-    itoa(i,a,10);
-    puts(a);
+    girar_90graus(0);
 
     return 0;
 }
