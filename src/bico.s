@@ -9,7 +9,8 @@
 .globl puts
 #############################################################################################
 set_torque:
-    addi sp, sp, -8 # Aloca espaço da pilha
+    addi sp, sp, -12 # Aloca espaço da pilha
+    sw ra, 8(sp)
     sw s0, 4(sp) # Salva s0 na pilha
     sw s1, 0(sp) # Salva s1 na pilha
     
@@ -50,6 +51,7 @@ set_torque:
     fimTorque:
         lw s1, 0(sp) # Recupera s2 da pilha
         lw s0, 4(sp) # Recupera s1 da pilha
+        lw ra, 8(sp)
         addi sp, sp, 8 # Desaloca espaço da pilha
         ret
 #############################################################################################

@@ -172,20 +172,13 @@ int_handler:
             la a1, TORQUE_MOTOR_1
             sh a0, 0(a1)
             
-            wait_sys_torque_motor_1:
-                lh a2, 0(a1)
-                bne a2, a0, wait_sys_torque_motor_1 # if a2 != a0 then wait
-            
             mv a0, zero
             j fim
         torque_motor_2:
             mv a0, a1
             la a1, TORQUE_MOTOR_2
             sh a0, 0(a1)
-            
-            wait_sys_torque_motor_2:
-                lh a2, 0(a1)
-                bne a2, a0, wait_sys_torque_motor_2 # if a2 != a0 then wait
+
             mv a0, zero
             j fim
     sys_read_gps:
@@ -258,6 +251,14 @@ int_handler:
         wait_gpt:
             lw a2, 0(a1)
             bne a2, a0, wait_gpt
+        li a0, 100 #interrupcoes a cada 100 ms
+        la a1, INTERRUPCAO_GPT
+        sw a0, 0(a1)
+        la a1, FLAG_INTERRUPCAO_GPT
+        sw zero, 0(a1)
+        wait_flag_gpt:
+            lw a2, 0(a1)
+            bnez a2, wait_flag_gpt
         j fim_gpt
     fim:
     csrr t1, mepc  # carrega endereco de retorno (endereco da instrucao que invocou a syscall)
@@ -296,7 +297,7 @@ int_handler:
     mret           # Recuperar o restante do contexto (pc <- mepc)
 
 _start:
-    li a0, 0 #interrupcoes a cada 100 ms
+    li a0, 100 #interrupcoes a cada 100 ms
     la a1, INTERRUPCAO_GPT
     sw a0, 0(a1)
     wait_1:
@@ -351,7 +352,7 @@ _start:
     # Ajusta o mscratch
     la t1, reg_buffer # Coloca o endereço do buffer para salvar
     csrw mscratch, t1 # registradores em mscratch
-    li sp, 134217724
+    li sp, 1342000
     # Muda para o Modo de usuário
     csrr t1, mstatus # Seta os bits 11 e 12 (MPP)
     li t2, ~0x1800 # do registrador mstatus
