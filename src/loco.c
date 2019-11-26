@@ -23,18 +23,7 @@ char* itoa(int value, char* result, int base) {
     return result;
 }
 void turn_left(int wait){
-  
-    get_time();
-    // char *a;
-    // itoa(i,a,10);
-    // puts(a);
-    // set_torque(20,-20);
-    // int time = get_time();
-    // while(time < 100){
-        // time = get_time();
-    // }    
-    // set_torque(0,0);
-
+ 
 }
 int main(int args, char **argv) {
     char* oi = "ALOALO";

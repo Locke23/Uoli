@@ -69,6 +69,7 @@ set_engine_torque:
 
     li t1, -1
     beq a0, t1,  erroID # if a0 == t1 then target
+    j fim
     
     erroID:
         li a0, -2
