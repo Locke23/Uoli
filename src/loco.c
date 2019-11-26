@@ -39,7 +39,10 @@ void turn_left(int wait){
 int main(int args, char **argv) {
     char* oi = "ALOALO";
     puts(oi);
-    int a = get_time();
-    
+    int i = get_time();
+    char* a;
+    itoa(i,a,10);
+    puts(a);
+
     return 0;
 }
