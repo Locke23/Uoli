@@ -23,8 +23,7 @@ char* itoa(int value, char* result, int base) {
     return result;
 }
 void turn_left(int wait){
-    char* oi = "ALOALO";
-    puts(oi);
+  
     get_time();
     // char *a;
     // itoa(i,a,10);
@@ -38,9 +37,9 @@ void turn_left(int wait){
 
 }
 int main(int args, char **argv) {
-    Vector3 *now;
-    get_current_GPS_position(now);
-    turn_left(1);
-
+    char* oi = "ALOALO";
+    puts(oi);
+    int a = get_time();
+    
     return 0;
 }

@@ -254,6 +254,9 @@ int_handler:
         li a0, 100 #interrupcoes a cada 100 ms
         la a1, INTERRUPCAO_GPT
         sw a0, 0(a1)
+        wait_sure_gpt:
+            lw a2, 0(a1)
+            bne a0, a2, wait_sure_gpt
         la a1, FLAG_INTERRUPCAO_GPT
         sw zero, 0(a1)
         wait_flag_gpt:
