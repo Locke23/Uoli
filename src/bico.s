@@ -40,6 +40,7 @@ set_torque:
    
     j fimTorque
 
+    #trata erro de intervalo de valores
     erroRange1:
         li a0, -2
         j fimTorque
@@ -71,10 +72,12 @@ set_engine_torque:
     beq a0, t1,  erroID # if a0 == t1 then target
     j fim
     
+    #trata o erro de id
     erroID:
         li a0, -2
         j fim  # jump to fim
 
+    #trata o erro de intervalo de valores
     erroRange:
         li a0, -1
         j fim
@@ -94,6 +97,7 @@ set_head_servo:
     li a0, -1
     j fimAngle
 
+#caso o retorno da sycal for -1 seta -2 para o usuario
     trata:
         li a0, -2
 
@@ -103,15 +107,18 @@ set_head_servo:
 #############################################################################################
 
 set_servo_angles:
-    
+    #modulariza apenas a chamada da ecall
     li a7, 17
     ecall
     ret
 #############################################################################################
 
 get_us_distance:
+    #chamada do sistema
     li a7, 16
     ecall
+
+    #tratamento pos syscall
     li a1, -1
     bne a0, a1, fim_distance
     li a0, 0xFFFF
@@ -120,35 +127,42 @@ get_us_distance:
 #############################################################################################
 
 get_current_GPS_position:
+    #chamda da syscall
     li a7, 19
     ecall
     ret
 #############################################################################################
 
 get_gyro_angles:
+ #chamda da syscall
     li a7, 20
     ecall 
     ret
 #############################################################################################
 
 get_time:
+ #chamda da syscall
     li a7, 21
     ecall
     ret
 #############################################################################################
 set_time:
+ #chamda da syscall
     li a7, 22
     ecall
     ret
 #############################################################################################
 puts:
+ #inicializa o contador do tamanho do buffer
     li a2, 0
     mv t1, a0
+    #pega o tamanho da string
     while_puts:
         lbu t0, 0(t1)
         addi a2, a2, 1
         add t1, a0, a2
         bnez t0, while_puts
+    # prepara para a chamada da syscall write    
     li a7, 64
     mv a1, a0
     li a0, 0

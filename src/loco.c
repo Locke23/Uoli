@@ -50,8 +50,25 @@ void girar_90graus( int i  ) {
     }
 }
 
+/* ALGORITIMO
+    para todo amigo em amigos
+        ajustaPosicao(amigo)
+        segueAmigo()
+        getGPS(eu)
+        while(eu != amigo - 50)
+            verificaDangerous()
+                desvia()
+            getGPS(eu)
+        para
+*/
 
 int main(int args, char **argv) {
+    //leitura do tamanho do vetor ds amigos
+    int friendSize = sizeof(friends_locations) / sizeof(friends_locations[0]);
+    
+    //leitura do tamanho do vetor ds amigos
+    int dangerSizer = sizeof(dangerous_locations) / sizeof(dangerous_locations[0]);
+
     girar_90graus(0);
 
     return 0;
